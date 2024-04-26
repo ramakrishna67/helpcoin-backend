@@ -1,10 +1,11 @@
-from flask import Flask, request
+from flask import Flask, request, render_template
 from mdb import create_user, inchc_bal, dechc_bal, login, get_usrdata, hf_data
+
 
 app = Flask(__name__)
 @app.route('/')
 def fun1():
-    return "working"
+    return render_template(index.html)
     
 @app.route('/account_create' , methods=['POST'])
 def create_user():
