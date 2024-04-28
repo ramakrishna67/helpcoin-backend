@@ -3,7 +3,7 @@ import pymongo
 from flask import Flask
 from pymongo import MongoClient
 
-#hst: history, hlst: help list,hf_data: help form data,hc:helpcoin
+#hst: history, hlst: help list,  hf_data: help form data, hc:helpcoin
 
 mongo_url = "mongodb+srv://kskkoushik135:hmUGoaSjnHdTJXNW@cluster0.xgap26r.mongodb.net/"
 
@@ -14,11 +14,12 @@ db = user['user_data']
 user_name = db['user_name']
 
 
-def create_user(username, email, password, location):
+def create_user(username, email, password, location,fullname):
   un = user_name.find_one({'username': username})
   em = user_name.find_one({'email': email})
   if un is None and em is None:
     user_name.insert_one({
+        'fullname': fullname,
         'username': username,
         'email': email,
         'password': password,
@@ -32,15 +33,19 @@ def create_user(username, email, password, location):
     return "user already exists"
 
 
-def login(username, password):
+def login_retri(username):
   un = user_name.find_one({'username': username})
   if un is None:
     return "create an account"  # url to be inserted to go to main page
   else:
-    if un['password'] == password:
-      return "dive into help coin"  # url to be inserted
-    else:
-      return "incorrect password"
+    return un['password']
+
+
+def append_locdata(latitude, longitude):
+      un=user_name.find_one({'username': 'default'})
+      un['location_data'].append([latitude, longitude])
+
+      return un['location_data']
 
 
 def inchc_bal(username, hc_count):
@@ -58,12 +63,12 @@ def dechc_bal(username, hc_count):
 def get_usrdata(username):
   un = user_name.find_one({'username': username})
   if un is not None:
-    return [un['hc_bal'], un['username'], un['email'], un['location']]
+    return [un['hc_bal'], un['username'], un['email'], un['location'], un['fullname']]
   else:
     return []
 
 
-def hf_data(username, title, description, location, hc_pay):
+def hf_data(username, title, description, location, hc_pay):    #extra functionality
   selected_users = user_name.find({'location': location})
   for user in selected_users:
     user['hlst'].append({
@@ -74,6 +79,16 @@ def hf_data(username, title, description, location, hc_pay):
         'hc_pay': hc_pay
     })
   return []
+
+def available_helps():
+  un = user_name.find_one({'username': 'default'})
+  return un['hlst']
+
+
+def list_help(title,description,location,balance,username):
+  filter= {'username': 'default'}
+  update={'$push':{'hlst': [ title,description,location,balance,username]}}
+  user_name.update_one(filter,update)
 
 
 '''def hlp_accept(seeker,helper):
